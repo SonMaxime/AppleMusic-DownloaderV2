@@ -19,7 +19,7 @@ Use the extention "get cookies.txt"
 ## How to use
 
 It's now impossible for you to download an album from its link, you must download the album song by song.
-* python applemusic.py https://music.apple.com/fr/album/oh-no/1021582747?i=1021582769
+* python applemusic.py https://music.apple.com/fr/album/shonen/1592329686?i=1592329692
 
 ![AM-DL](https://user-images.githubusercontent.com/47661880/187050326-51ee0d1b-78ec-493b-b5e1-01f8b2ce9970.png)
 ![FOLDER PROOF](https://user-images.githubusercontent.com/47661880/187050300-8168693e-f843-4c82-897c-62e1fcb0f042.png)
