@@ -1,5 +1,5 @@
 ## AppleMusic-DownloaderV2
-Download videos and audios from AppleMusic!
+Download AAC from Apple Music !
 
 ## Why a V2 of the downloader ?
 
@@ -21,5 +21,5 @@ Use the extention "get cookies.txt"
 It's now impossible for you to download an album from its link, you must download the album song by song.
 * python applemusic.py https://music.apple.com/fr/album/oh-no/1021582747?i=1021582769
 
-![AM-DL](https://user-images.githubusercontent.com/47661880/187037456-e188a4d1-a1c1-4fcf-aa7b-b241bda6f8e3.png)
-![FOLDER PROOF](https://user-images.githubusercontent.com/47661880/187037508-5f3cafa2-f3af-4687-a0b9-24a5c47e7120.png)
+![AM-DL](https://user-images.githubusercontent.com/47661880/187050326-51ee0d1b-78ec-493b-b5e1-01f8b2ce9970.png)
+![FOLDER PROOF](https://user-images.githubusercontent.com/47661880/187050300-8168693e-f843-4c82-897c-62e1fcb0f042.png)
