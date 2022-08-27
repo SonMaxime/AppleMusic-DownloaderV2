@@ -40,10 +40,8 @@ BANNER = """
  / ___ |/ /_/ / /_/ / /  __/  / /  / / /_/ (__  ) / /__   / _, _/ / /_/ / /_/ /  __/ /    
 /_/  |_/ .___/ .___/_/\___/  /_/  /_/\__,_/____/_/\___/  /_/ |_/_/ .___/ .___/\___/_/     
       /_/   /_/                                                 /_/   /_/                                                         
-
-> REMAKE By ReiDoBregaBR
-> SOURCE By Puyodead1
-> VERSION 2.0.0
+> REMAKE By SonMaxime
+> VERSION 2.1.0
 """
 class VideoTrack:
 
@@ -222,7 +220,7 @@ class AppleMusicClient:
 
         self.session.headers.update({
             "Accept": "application/json",
-            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Language": "fr-FR,en;q=0.5",
             "Accept-Encoding": "gzip, deflate, br",
             "authorization": f"Bearer {token}",
             "content-type": "application/json",
@@ -284,8 +282,34 @@ class AppleMusicClient:
         for key, value in data.items():
             f[key] = value
         f.save()
-        shutil.move(self.oufn, self.oufn.replace(
-            toolcfg.folder.output, self.album_folder))
+        shutil.move(self.oufn, self.oufn.replace("temp", toolcfg.folder.output + "/" + metadata["playlistName"]))
+
+
+    def extract_playlist_data(self, metadata):
+        playlist = m3u8.load(metadata['playback'])
+        if self.content_type != 'music-video':
+            fn = playlist.segments[0].uri
+            track_url = playlist.base_uri + fn
+            key_id = playlist.keys[0].uri
+            return track_url, key_id
+
+        # return only audio track url and key id
+        track_url = [
+            x for x in playlist.media if x.type == "AUDIO"][-1].uri
+        key_id = next(x for x in m3u8.load(track_url).keys if x.keyformat ==
+                            "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed").uri
+        if not key_id:
+            self.log.fatal("- Failed To Find Audio Key ID With Widevine SystemID")
+            exit(1)
+
+        # for video track -> self only
+        self.vt_url = playlist.playlists[-1].uri
+        self.vt_kid = next(x for x in  m3u8.load(self.vt_url).keys if x.keyformat ==
+                            "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed").uri
+        if not self.vt_kid:
+            self.log.fatal("- Failed To Find Video Key ID With Widevine SystemID")
+            exit(1)
+        return track_url, key_id
 
     def insert_metadata(self, metadata):
         self.log.info("+ Adding metadata")
@@ -321,46 +345,6 @@ class AppleMusicClient:
             self.music_tag(data)
         except Exception as e:
             self.log.warning(f"- Failed to Tag File: {e}")
-
-    def extract_playlist_data(self, metadata):
-        playlist = m3u8.load(metadata['playback'])
-        if self.content_type != 'music-video':
-            fn = playlist.segments[0].uri
-            track_url = playlist.base_uri + fn
-            key_id = playlist.keys[0].uri
-            return track_url, key_id
-
-        # return only audio track url and key id
-        track_url = [
-            x for x in playlist.media if x.type == "AUDIO"][-1].uri
-        key_id = next(x for x in m3u8.load(track_url).keys if x.keyformat ==
-                            "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed").uri
-        if not key_id:
-            self.log.fatal("- Failed To Find Audio Key ID With Widevine SystemID")
-            exit(1)
-
-        # for video track -> self only
-        self.vt_url = playlist.playlists[-1].uri
-        self.vt_kid = next(x for x in  m3u8.load(self.vt_url).keys if x.keyformat ==
-                            "urn:uuid:edef8ba9-79d6-4ace-a3c8-27dcd51d21ed").uri
-        if not self.vt_kid:
-            self.log.fatal("- Failed To Find Video Key ID With Widevine SystemID")
-            exit(1)
-        return track_url, key_id
-
-    def do_ffmpeg_fix(self, track):
-        ffmpeg_command = [
-            toolcfg.binaries.ffmpeg,
-            '-y',
-            '-hide_banner',
-            '-loglevel', 'error',
-            '-i', track,
-            '-map_metadata', '-1',
-            '-fflags', 'bitexact',
-            '-c', 'copy',
-            self.oufn,
-        ]
-        subprocess.run(ffmpeg_command, check=True)
 
     def download_track(self, tracks: VideoTrack): # KEKE DW
         
@@ -622,13 +606,12 @@ class AppleMusicClient:
         else:
             self.log.info("+ All Decrypting Complete")
             if self.content_type != 'music-video':
-                self.album_folder = os.path.join(toolcfg.folder.output, self.album_name)
-                if not os.path.exists(self.album_folder):
-                    os.mkdir(self.album_folder)
-
-                ffmpeg_atrack = wvdecrypt_config.get_filename(toolcfg.filenames.decrypted_filename_audio_ff)
-                self.oufn = wvdecrypt_config.get_filename(toolcfg.filenames.muxed_audio_filename)
-                self.do_ffmpeg_fix(ffmpeg_atrack)
+                if not os.path.exists("output/" + metadata["playlistName"]):
+                    os.chdir("output")
+                    os.mkdir(metadata["playlistName"])
+                    os.chdir("../")
+                self.album_folder = os.path.join(toolcfg.folder.output, metadata["playlistName"])
+                self.oufn = wvdecrypt_config.get_filename(toolcfg.filenames.decrypted_filename_audio)
                 # Music Tag
                 self.insert_metadata(metadata)
             else:
@@ -674,10 +657,10 @@ if __name__ == "__main__":
     parser.add_argument('url', nargs='?', help='apple music title url')
     parser.add_argument('-t', '--track', help='rip only specified track from album')
     parser.add_argument('-ts', '--track_start', help="rip starting at the track number provided")
-    parser.add_argument('-r', '--region', default='us', choices=['us', 'eu', 'br'], help='Apple Music Region')
+    parser.add_argument('-r', '--region', default='eu', choices=['us', 'eu', 'br'], help='Apple Music Region')
     parser.add_argument("-d", "--debug", action="store_true", help="Enable debug logging")
     # don't use with music video, bad fps lol
-    parser.add_argument("-m4", "--mp4decrypt", dest="mp4_decrypt", action="store_true",
+    parser.add_argument("-m4", "--mp4decrypt", dest="mp4_decrypt", default=True, action="store_true",
                         help="Use mp4decrypt instead of shaka-packager to decrypt files")
     parser.add_argument('-k', '--skip-cleanup', action='store_true', help='skip cleanup step')
     parser.add_argument("--keys", action="store_true", help="show keys and exit")
