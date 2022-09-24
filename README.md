@@ -1,6 +1,11 @@
 ## AppleMusic-DownloaderV2
 Download AAC from Apple Music !
 
+## Requirements ?
+
+- Python 3.8+
+- MP4Box (for iTunes rebranding) : https://www.videohelp.com/software/MP4Box
+
 ## Why a V2 of the downloader ?
 
 Since Apple modified the web API of Apple Music, it became impossible to get album informations directly from the album link, you have to download each song indivudualy and use single links like : "https://music.apple.com/fr/album/oh-no/1021582747?i=1021582769".
