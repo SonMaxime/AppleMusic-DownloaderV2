@@ -4,7 +4,7 @@ Download AAC from Apple Music !
 ## Requirements ?
 
 - Python 3.8+
-- MP4Box (for iTunes rebranding) : https://www.videohelp.com/software/MP4Box
+- MP4Box (for iTunes m4a rebranding) : https://www.videohelp.com/software/MP4Box
 
 ## Why a V2 of the downloader ?
 
