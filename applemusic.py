@@ -327,7 +327,6 @@ class AppleMusicClient:
             "totaltracks": metadata["trackCount"],
             "tracknumber": metadata["trackNumber"],
             "tracktitle": metadata["itemName"],
-            "year": metadata["year"],
         }
         # sometimes don't found
         try:
@@ -614,6 +613,8 @@ class AppleMusicClient:
                 self.oufn = wvdecrypt_config.get_filename(toolcfg.filenames.decrypted_filename_audio)
                 # Music Tag
                 self.insert_metadata(metadata)
+                filenamemp4box = toolcfg.folder.output + "/" + metadata["playlistName"] + "/" + self.filename + ".m4a" ## Decrypted file directory 
+                subprocess.call(['mp4box', "-ipod", filenamemp4box]) ## iTunes rebranding
             else:
                 ats = toolcfg.filenames.decrypted_filename_audio.format(
                                     filename=self.filename, track_type='audio', track_no='0')
@@ -621,6 +622,7 @@ class AppleMusicClient:
                                     filename=self.filename, track_type='video', track_no='0')
                 out = wvdecrypt_config.get_filename(toolcfg.filenames.muxed_video_filename)
                 self.do_merge(ats, vts, out)
+
 
         if self.args.skip_cleanup:
             self.log.info('+ Skipping Clean')
